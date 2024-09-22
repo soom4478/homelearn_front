@@ -32,15 +32,15 @@ import ReviewWrite from "./Food/reviewWrite";
 import Start from './Start/Start';  
 import Login from './Start/Login'; 
 
-import BaseballCommunityPost from './test';
+import Test from './test';
 
 const App = () => {
   return (
     <StoreProvider>
       <Router>
         <Routes>
-          {/* <Route path="/" element={<BaseballCommunityPost />} /> */}
-          <Route path="/" element={<Start />} />
+          <Route path="/" element={<Test />} />
+          {/* <Route path="/" element={<Start />} /> */}
           <Route path="/login" element={<Login />} />  
           <Route path="/home" element={<><BottomNav /><Home /></>} />
           <Route path="/calender" element={<Calender />} />

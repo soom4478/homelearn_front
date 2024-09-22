@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { comuImfo } from './comuImfo';
 import { displayInfo } from './displayImfo';
+import { TeamNum } from './team_num';
 import "./comuMain.css";
 import heartIcon from "../image/heartIcon.png";
 import commentIcon from "../image/commentIcon.png";
 import comuBtn from "../image/comuBtn.png";
+import axios from 'axios';
 
 const ComuMain = () => {
     const [selectedIndex, setSelectedIndex] = useState('전체'); // 초기값을 "전체"로 설정
     const [backgroundImage, setBackgroundImage] = useState(null);
     const [displayText, setDisplayText] = useState('');
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -20,62 +24,98 @@ const ComuMain = () => {
         if (displayInfo.text) {
             setDisplayText(displayInfo.text);
         }
+
+        const fetchPosts = async () => {
+            try {
+                const response = await axios.get('http://localhost:4000/api/post/your-api-key');
+                setPosts(response.data);
+            } catch (error) {
+                setError(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPosts();
     }, []);
 
     const navItems = ['전체', '삼성 라이온즈'];
-  
+
     const handleItemClick = (item) => {
-      setSelectedIndex(item);
+        setSelectedIndex(item);
     };
 
     const handleWriteClick = () => {
-        navigate(`/community/write`, { state: { selectedIndex } });
+        let baseballCommunityId = 0;
+        if (selectedIndex !== '전체') {
+            const team = TeamNum.find(team => team.team_name === selectedIndex);
+            if (team) {
+                baseballCommunityId = team.team_num;
+            }
+        }
+        navigate(`/community/write`, { state: { baseballCommunityId } });
     };
 
     const handleDisplqyClick = () => {
         navigate(`/community/display`);
     };
 
-    const handleComuClick = (item) => {
-      navigate(`/community/detail`, { state: { item } });
+    const handleComuClick = (id) => {
+        navigate(`/community/detail`, { state: { id } });
     };
 
-    const calculateTimeDifference = (comuTime) => {
+    const calculateTimeDifference = (createdAt) => {
         const now = new Date();
-        const comuDate = new Date(`20${comuTime.replace('.', '-').replace('.', '-').replace(' ', 'T')}`);
-        const diffInSeconds = Math.floor((now - comuDate) / 1000);
-        const hours = Math.floor(diffInSeconds / 3600);
+        const createdDate = new Date(createdAt);
+        const diffInSeconds = Math.floor((now - createdDate) / 1000);
+        const days = Math.floor(diffInSeconds / (3600 * 24));
+        const hours = Math.floor((diffInSeconds % (3600 * 24)) / 3600);
         const minutes = Math.floor((diffInSeconds % 3600) / 60);
         const seconds = diffInSeconds % 60;
 
-        if (hours > 0) {
+        if (days > 0) {
+            return `${days}일 전`;
+        } else if (hours > 0) {
             return `${hours}시간 전`;
         } else if (minutes > 0) {
             return `${minutes}분 전`;
         } else if (seconds > 0) {
             return `${seconds}초 전`;
         } else {
-            return '';
+            return '방금 전';
         }
     };
 
-    const sortedComuImfo = comuImfo
-        .filter(item => item.club === selectedIndex)
-        .sort((a, b) => new Date(`20${b.comu_time.replace('.', '-').replace('.', '-').replace(' ', 'T')}`) - new Date(`20${a.comu_time.replace('.', '-').replace('.', '-').replace(' ', 'T')}`));
+    const filteredPosts = posts.filter(post => {
+        if (selectedIndex === '전체') {
+            return post.baseball_community_id === 0;
+        } else {
+            const team = TeamNum.find(team => team.team_name === selectedIndex);
+            return team && post.baseball_community_id === team.team_num;
+        }
+    }).reverse(); // 배열을 역순으로 정렬
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>Error: {error.message}</div>;
+    }
 
     return (
         <div className='comuMcon1'>
             <div className="nav-bar">
-            {navItems.map((item, index) => (
-                <div
-                id='comuMcon2'
-                key={index}
-                className={`nav-item ${selectedIndex === item ? 'selected' : ''}`}
-                onClick={() => handleItemClick(item)}
-                >
-                <p>{item}</p>
-                </div>
-            ))}
+                {navItems.map((item, index) => (
+                    <div
+                        id='comuMcon2'
+                        key={index}
+                        className={`nav-item ${selectedIndex === item ? 'selected' : ''}`}
+                        onClick={() => handleItemClick(item)}
+                    >
+                        <p>{item}</p>
+                    </div>
+                ))}
             </div>
             <div
                 className='displayCon1'
@@ -92,21 +132,21 @@ const ComuMain = () => {
                 <p className='displayText'>{displayText}</p>
             </div>
             <div className='comuMcon3'>
-                {sortedComuImfo.map((item, index) => (
+                {filteredPosts.map((item, index) => (
                     <div className="comuCon3_2" key={index}>
-                        <div className="comuCon4_2" onClick={() => handleComuClick(item)}>
-                            <p id="comuT">{item.comu_title}</p>
-                            <p id="comuI">{item.comu_text}</p>
-                            <p id="comuB">{calculateTimeDifference(item.comu_time)}</p> {/* 현재 시간에서 comu_time을 뺀 값 표시 */}
+                        <div className="comuCon4_2" onClick={() => handleComuClick(item.id)}>
+                            <p id="comuT">{item.title}</p>
+                            <p id="comuI">{item.content}</p>
+                            <p id="comuB">{calculateTimeDifference(item.createdAt)}</p> {/* createdAt을 사용하여 시간 차이 계산 */}
                             <div className="comuCon5">
-                            <div className="comuHcon">
-                                <img id="comuH" src={heartIcon} alt="heartIcon" />
-                                <p id="comuHtext">{item.comu_heart}</p>
-                            </div>
-                            <div className="comuCcon">
-                                <img id="comuC" src={commentIcon} alt="commentIcon" />
-                                <p id="comuCtext">{item.comu_commen}</p>
-                            </div>
+                                <div className="comuHcon">
+                                    <img id="comuH" src={heartIcon} alt="heartIcon" />
+                                    <p id="comuHtext">{item.like_num}</p>
+                                </div>
+                                <div className="comuCcon">
+                                    <img id="comuC" src={commentIcon} alt="commentIcon" />
+                                    <p id="comuCtext">{item.comments_num}</p>
+                                </div>
                             </div>
                         </div>
                     </div>

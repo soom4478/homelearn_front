@@ -1,187 +1,84 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-const BaseballCommunityPost = () => {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [newPost, setNewPost] = useState({
-    user_id: '',
-    baseball_community_id: '',
-    title: '',
-    content: '',
-    image_url: ''
-  });
-  const [editingPost, setEditingPost] = useState(null);
-  const [likedPosts, setLikedPosts] = useState({});
+const Test = () => {
+    const [billboard, setBillboard] = useState({ image: null, text: '' });
+    const [error, setError] = useState(null);
+    const [text, setText] = useState('');
+    const [image, setImage] = useState(null);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await axios.get('http://localhost:4000/api/post/your-api-key');
-        setPosts(response.data);
-      } catch (error) {
-        setError(error);
-      } finally {
-        setLoading(false);
-      }
+    const apiKey = '6VVQ0SB-C3X4PJQ-J3DZ587-5FGKYD1'; // 여기에 API 키를 입력하세요
+
+    useEffect(() => {
+        const fetchBillboard = async () => {
+            try {
+                const response = await axios.get(`http://3.138.127.122:5000/api/billboard/${apiKey}`);
+                setBillboard(response.data);
+            } catch (error) {
+                setError('Failed to fetch billboard data');
+            }
+        };
+
+        fetchBillboard();
+    }, [apiKey]);
+
+    const handleTextChange = (event) => {
+        setText(event.target.value);
     };
 
-    fetchPosts();
-  }, []);
+    const handleImageChange = (event) => {
+        setImage(event.target.files[0]);
+    };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewPost({ ...newPost, [name]: value });
-  };
+    const handleSubmit = async (event) => {
+        event.preventDefault();
 
-  const handleCreatePost = async () => {
-    try {
-      const response = await axios.post('http://localhost:4000/api/post/6VVQ0SB-C3X4PJQ-J3DZ587-5FGKYD1', newPost);
-      setPosts([...posts, response.data]);
-      setNewPost({
-        user_id: '',
-        baseball_community_id: '',
-        title: '',
-        content: '',
-        image_url: ''
-      });
-    } catch (error) {
-      console.error('게시물 생성 중 오류 발생:', error);
+        const formData = new FormData();
+        formData.append('text', text);
+        if (image) {
+            formData.append('image', image);
+        }
+
+        try {
+            const response = await axios.post(`http://3.138.127.122:5000/api/billboard/update/${apiKey}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            setBillboard(response.data.billboard);
+        } catch (error) {
+            console.error('Error updating billboard:', error.response ? error.response.data : error.message);
+            setError('Failed to update billboard');
+        }
+    };
+
+    if (error) {
+        return <div>{error}</div>;
     }
-  };
 
-  const handleDeletePost = async (postId) => {
-    try {
-      await axios.delete(`http://localhost:4000/api/post/6VVQ0SB-C3X4PJQ-J3DZ587-5FGKYD1/${postId}`);
-      setPosts(posts.filter(post => post.id !== postId));
-    } catch (error) {
-      console.error('게시물 삭제 중 오류 발생:', error);
-    }
-  };
+    return (
+        <div>
+            <h1>Billboard</h1>
+            {billboard.image && <img src={billboard.image} alt="Billboard" />}
+            <p>{billboard.text}</p>
 
-  const handleEditPost = (post) => {
-    setEditingPost(post);
-    setNewPost({
-      user_id: post.user_id,
-      baseball_community_id: post.baseball_community_id,
-      title: post.title,
-      content: post.content,
-      image_url: post.image_url
-    });
-  };
-
-  const handleUpdatePost = async () => {
-    try {
-      const response = await axios.put(`http://localhost:4000/api/post/6VVQ0SB-C3X4PJQ-J3DZ587-5FGKYD1/${editingPost.id}`, newPost);
-      setPosts(posts.map(post => post.id === editingPost.id ? response.data : post));
-      setEditingPost(null);
-      setNewPost({
-        user_id: '',
-        baseball_community_id: '',
-        title: '',
-        content: '',
-        image_url: ''
-      });
-    } catch (error) {
-      console.error('게시물 수정 중 오류 발생:', error);
-    }
-  };
-
-  const handleLikePost = async (postId) => {
-    const isLiked = likedPosts[postId];
-    const updatedPosts = posts.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          like_num: isLiked ? post.like_num - 1 : post.like_num + 1
-        };
-      }
-      return post;
-    });
-
-    setPosts(updatedPosts);
-    setLikedPosts({ ...likedPosts, [postId]: !isLiked });
-
-    try {
-      await axios.put(`http://localhost:4000/api/post/6VVQ0SB-C3X4PJQ-J3DZ587-5FGKYD1/${postId}`, {
-        like_num: isLiked ? updatedPosts.find(post => post.id === postId).like_num - 1 : updatedPosts.find(post => post.id === postId).like_num + 1
-      });
-    } catch (error) {
-      console.error('좋아요 업데이트 중 오류 발생:', error);
-    }
-  };
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  }
-
-  return (
-    <div>
-      <h1>Baseball Community Posts</h1>
-      <div>
-        <h2>{editingPost ? 'Edit Post' : 'Create New Post'}</h2>
-        <input
-          type="text"
-          name="user_id"
-          placeholder="User ID"
-          value={newPost.user_id}
-          onChange={handleInputChange}
-        />
-        <input
-          type="text"
-          name="baseball_community_id"
-          placeholder="Community ID"
-          value={newPost.baseball_community_id}
-          onChange={handleInputChange}
-        />
-        <input
-          type="text"
-          name="title"
-          placeholder="Title"
-          value={newPost.title}
-          onChange={handleInputChange}
-        />
-        <textarea
-          name="content"
-          placeholder="Content"
-          value={newPost.content}
-          onChange={handleInputChange}
-        />
-        <input
-          type="text"
-          name="image_url"
-          placeholder="Image URL"
-          value={newPost.image_url}
-          onChange={handleInputChange}
-        />
-        {editingPost ? (
-          <button onClick={handleUpdatePost}>Update Post</button>
-        ) : (
-          <button onClick={handleCreatePost}>Create Post</button>
-        )}
-      </div>
-      <ul>
-        {posts.map((post) => (
-          <li key={post.id}>
-            <h2>{post.title}</h2>
-            <p>{post.content}</p>
-            <p>Likes: {post.like_num}</p>
-            <p>Comments: {post.comments_num}</p>
-            <button onClick={() => handleEditPost(post)}>Edit</button>
-            <button onClick={() => handleDeletePost(post.id)}>Delete</button>
-            <button onClick={() => handleLikePost(post.id)}>
-              {likedPosts[post.id] ? 'Unlike' : 'Like'}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label>
+                        Text:
+                        <input type="text" value={text} onChange={handleTextChange} />
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        Image:
+                        <input type="file" onChange={handleImageChange} />
+                    </label>
+                </div>
+                <button type="submit">Update Billboard</button>
+            </form>
+        </div>
+    );
 };
 
-export default BaseballCommunityPost;
+export default Test;

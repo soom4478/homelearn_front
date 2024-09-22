@@ -1,33 +1,51 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import "./comuDetail.css";
 import returnIcon from "../image/return.png";
-import { useNavigate } from 'react-router-dom';
 import heartIcon1 from "../image/heart_empty.png";
 import heartIcon2 from "../image/heart_full.png";
 import comuIcon from "../image/comuIcon.png";
 import dotIcon from "../image/dotIcon.png";
 import dotIcon2 from "../image/dotIcon2.png";
 import { commentImfo, addComment } from './commentImfo';
-import { comuImfo, updateHeartCount } from './comuImfo';
+import axios from 'axios';
 
 const ComuDetail = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { item } = location.state;
+    const { id } = location.state || {}; // location.state가 null인 경우를 처리
 
+    const [item, setItem] = useState(null);
     const [isCommenting, setIsCommenting] = useState(false);
     const [commentText, setCommentText] = useState('');
     const [comments, setComments] = useState([...commentImfo]);
     const [isHearted, setIsHearted] = useState(false);
-    const [heartCount, setHeartCount] = useState(item.comu_heart);
+    const [heartCount, setHeartCount] = useState(0);
 
     useEffect(() => {
-        const heartedStatus = localStorage.getItem(`isHearted_${item.id}`);
-        if (heartedStatus) {
-            setIsHearted(JSON.parse(heartedStatus));
+        if (id) {
+            const fetchItem = async () => {
+                try {
+                    const response = await axios.get(`http://localhost:4000/api/post/your-api-key/${id}`);
+                    setItem(response.data);
+                    setHeartCount(response.data.like_num);
+                } catch (error) {
+                    console.error('데이터 불러오기 중 오류 발생:', error);
+                }
+            };
+
+            fetchItem();
         }
-    }, [item.id]);
+    }, [id]);
+
+    useEffect(() => {
+        if (item) {
+            const heartedStatus = localStorage.getItem(`isHearted_${item.id}`);
+            if (heartedStatus) {
+                setIsHearted(JSON.parse(heartedStatus));
+            }
+        }
+    }, [item]);
 
     const handleReturnClick = () => {
         navigate(-1); // 뒤로 이동
@@ -63,14 +81,27 @@ const ComuDetail = () => {
         }
     };
 
-    const handleHeartClick = () => {
+    const handleHeartClick = async () => {
         const newHeartedStatus = !isHearted;
         setIsHearted(newHeartedStatus);
         localStorage.setItem(`isHearted_${item.id}`, JSON.stringify(newHeartedStatus));
         const newHeartCount = newHeartedStatus ? heartCount + 1 : heartCount - 1;
         setHeartCount(newHeartCount);
-        updateHeartCount(item.id, newHeartCount);
+    
+        try {
+            console.log('좋아요 수 업데이트를 위한 PUT 요청을 보내는 중...');
+            await axios.put(`http://localhost:4000/api/post/6VVQ0SB-C3X4PJQ-J3DZ587-5FGKYD1/${item.id}`, {
+                like_num: newHeartCount
+            });
+            console.log('PUT 요청 성공.');
+        } catch (error) {
+            console.error('좋아요 업데이트 중 오류 발생:', error);
+        }
     };
+
+    if (!item) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div className='comuDcon1'>
@@ -78,7 +109,7 @@ const ComuDetail = () => {
                 <div className="foodDcon2">
                     <div className='calender-con'>
                         <img id="return" src={returnIcon} alt="return" onClick={handleReturnClick} /> {/* 클릭 이벤트 핸들러 추가 */}
-                        <p id='foodDetail-title'>{item.comu_title}</p>
+                        <p id='foodDetail-title'>{item.title}</p>
                     </div>
                 </div>
             </div>
@@ -86,12 +117,12 @@ const ComuDetail = () => {
                 <div className='comuDcon3'>
                     <div className='comuProfile'></div>
                     <div className='comuUser'>
-                        <p id='uname'>{item.uname}</p>
-                        <p id='utime'>{item.time}</p>
+                        <p id='uname'>{item.user_id}</p>
+                        <p id='utime'>2024.05.26</p>
                     </div>
                     <img id='dotIcon1' src={dotIcon} alt="dotIcon1" />
                 </div>
-                <p id='utext'>{item.comu_text}</p>
+                <p id='utext'>{item.content}</p>
                 <div className='comuDcon4'>
                     <div className="comuHcon" onClick={handleHeartClick}>
                         <img id="comuH" src={isHearted ? heartIcon2 : heartIcon1} alt="heartIcon" />
@@ -99,7 +130,7 @@ const ComuDetail = () => {
                     </div>
                     <div className="comuCcon">
                         <img id="comuC" src={comuIcon} alt="commentIcon" />
-                        <p id="comuCtext_2">{item.comu_commen}</p>
+                        <p id="comuCtext_2">{item.comments_num}</p>
                     </div>
                 </div>
             </div>

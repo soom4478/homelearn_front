@@ -32,7 +32,7 @@ export const Homeground = [
         ground: "대구"
     },
     {
-        team: "환화",
+        team: "한화",
         ground: "대전"
     },
     {

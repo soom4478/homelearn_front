@@ -154,11 +154,13 @@ nav {
 }
 
 .category {
-    margin-left: 24px;
+    margin-left: 5%;
+    width: 90%;
+    display: flex;
+    flex-wrap: wrap; /* 줄바꿈을 허용하여 유동적으로 배치 */
 }
 
 #block {
-    width: 45px;
     height: 23px;
     background-color: #DEE1E6;
     border-radius: 10px;
@@ -168,6 +170,8 @@ nav {
     align-content: center;
     display: inline-block;
     margin-left: 5px;
+    padding: 0 10px; /* 좌우 패딩을 추가하여 글자 수에 따라 크기 조정 */
+    white-space: nowrap; /* 줄바꿈 방지 */
 }
 
 .category #block {
