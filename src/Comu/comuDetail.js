@@ -18,15 +18,16 @@ const ComuDetail = () => {
     const [item, setItem] = useState(null);
     const [isCommenting, setIsCommenting] = useState(false);
     const [commentText, setCommentText] = useState('');
-    const [comments, setComments] = useState([...commentImfo]);
+    const [comments, setComments] = useState([]);
     const [isHearted, setIsHearted] = useState(false);
     const [heartCount, setHeartCount] = useState(0);
 
     useEffect(() => {
         if (id) {
+            console.log("넘겨받은 id:", id); // id 출력
             const fetchItem = async () => {
                 try {
-                    const response = await axios.get(`http://localhost:4000/api/post/your-api-key/${id}`);
+                    const response = await axios.get(`http://localhost:5000/api/post/your-api-key/${id}`);
                     setItem(response.data);
                     setHeartCount(response.data.like_num);
                 } catch (error) {
@@ -37,6 +38,19 @@ const ComuDetail = () => {
             fetchItem();
         }
     }, [id]);
+
+    useEffect(() => {
+        const fetchComments = async () => {
+            try {
+                const response = await axios.get('http://3.138.127.122:5000/api/postcomment/6VVQ0SB-C3X4PJQ-J3DZ587-5FGKYD1');
+                setComments(response.data);
+            } catch (error) {
+                console.error('댓글 데이터 불러오기 중 오류 발생:', error);
+            }
+        };
+
+        fetchComments();
+    }, []);
 
     useEffect(() => {
         if (item) {
@@ -90,7 +104,7 @@ const ComuDetail = () => {
     
         try {
             console.log('좋아요 수 업데이트를 위한 PUT 요청을 보내는 중...');
-            await axios.put(`http://localhost:4000/api/post/6VVQ0SB-C3X4PJQ-J3DZ587-5FGKYD1/${item.id}`, {
+            await axios.put(`http://localhost:5000/api/post/6VVQ0SB-C3X4PJQ-J3DZ587-5FGKYD1/${item.id}`, {
                 like_num: newHeartCount
             });
             console.log('PUT 요청 성공.');
@@ -149,19 +163,19 @@ const ComuDetail = () => {
                 </div>
             ) : (
                 <div className='comuDcon5'>
-                    {comments.filter(comment => comment.id === item.id).map((comment, index) => (
+                    {comments.filter(comment => comment.postId === item.id).map((comment, index) => (
                         <div className='comuDcon8' key={index}>
                             <div className='comuDcon6'>
                                 <div className='cmtCon'>
                                     <div className='comuDcon7'></div>
                                     <div className='comuProfile2'></div>
                                     <div className='comuUser'>
-                                        <p id='uname'>{comment.name}</p>
-                                        <p id='utime'>{comment.time}</p>
+                                        <p id='uname'>{comment.userId}</p>
+                                        <p id='utime'>{new Date(comment.updatedAt).toISOString().split('T')[0].replace(/-/g, '.')}</p>
                                     </div>
                                     <img id='dotIcon2' src={dotIcon2} alt="dotIcon2" />
                                 </div>
-                                <p id='cmtText'>{comment.comment}</p>
+                                <p id='cmtText'>{comment.content}</p>
                             </div>
                         </div>
                     ))}

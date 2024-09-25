@@ -17,6 +17,15 @@
     background-repeat: no-repeat;
 }
 
+#reviewImg2 {
+    overflow: hidden;
+    width: 100%; /* 가로를 부모에 꽉 차게 */
+    height: 100%; /* 세로를 부모에 꽉 차게 */
+    object-fit: cover; /* 이미지를 박스에 맞게 조절 */
+    display: block; /* 인라인 블록 속성 제거 */
+}
+
+
 .reviewStarCon2 {
     text-align: center;
     padding: 42px 0 12px;

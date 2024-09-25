@@ -31,47 +31,55 @@ import Notifications from "./Alram/Notifications";
 import ReviewWrite from "./Food/reviewWrite";
 import Start from './Start/Start';  
 import Login from './Start/Login'; 
+import SocialKakao from "./OAuth";
 
-import Test from './test';
+import UserManagement from './test';
+import { UserProvider } from './UserContext';
+import Hometest from './hometest';
+import InputComponent from './InputComponent';
 
 const App = () => {
   return (
-    <StoreProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Test />} />
-          {/* <Route path="/" element={<Start />} /> */}
-          <Route path="/login" element={<Login />} />  
-          <Route path="/home" element={<><BottomNav /><Home /></>} />
-          <Route path="/calender" element={<Calender />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/rule" element={<Rule />} />
-          <Route path="/term" element={<Term />} />
-          <Route path="/team" element={<><BottomNav /><TeamMain /></>} />
-          <Route path="/nextpage" element={<TermDetail />} />
-          <Route path="/food" element={<><BottomNav /><FoodMain /></>} />
-          <Route path="/food/:storeId" element={<FoodDetail />} />
-          <Route path="/review/:storeId" element={<Review />} />
-          <Route path="/review/write" element={<ReviewWrite />} />
-          <Route path="/community" element={<><BottomNav /><ComuMain /></>} />
-          <Route path="/community/:detail" element={<ComuDetail />} />
-          <Route path="/community/write" element={<ComuWrite />} />
-          <Route path="/community/display" element={<DisplayWrite />} />
-          <Route path="/my" element={<><BottomNav /><PageMain /></>} />
-          <Route path="/player" element={<Player />} />
-          <Route path="/cheersong" element={<Cheersong />} />
-          <Route path="/songdetail/:id" element={<SongDetail />} />
-          <Route path="/homeground" element={<Homeground />} />
-          <Route path="/map-detail" element={<MapDetail />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/myposts" element={<MyPosts />} />
-          <Route path="/mycomments" element={<MyComments />} />
-          <Route path="/myreviews" element={<MyReviews />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </Router>
-    </StoreProvider>
+    <UserProvider>
+      <StoreProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<UserManagement />} />
+            {/* <Route path="/" element={<SocialKakao />} /> */}
+            {/* <Route path="/" element={<Start />} /> */}
+            <Route path="/login" element={<Login />} /> 
+            {/* <Route path="/home" element={<><Hometest /></>} /> */}
+            <Route path="/home" element={<><BottomNav /><Home /></>} />
+            <Route path="/calender" element={<Calender />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/rule" element={<Rule />} />
+            <Route path="/term" element={<Term />} />
+            <Route path="/team" element={<><BottomNav /><TeamMain /></>} />
+            <Route path="/nextpage" element={<TermDetail />} />
+            <Route path="/food" element={<><BottomNav /><FoodMain /></>} />
+            <Route path="/food/:storeId" element={<FoodDetail />} />
+            <Route path="/review/:storeId" element={<Review />} />
+            <Route path="/review/write" element={<ReviewWrite />} />
+            <Route path="/community" element={<><BottomNav /><ComuMain /></>} />
+            <Route path="/community/:detail" element={<ComuDetail />} />
+            <Route path="/community/write" element={<ComuWrite />} />
+            <Route path="/community/display" element={<DisplayWrite />} />
+            <Route path="/my" element={<><BottomNav /><PageMain /></>} />
+            <Route path="/player" element={<Player />} />
+            <Route path="/cheersong" element={<Cheersong />} />
+            <Route path="/songdetail/:id" element={<SongDetail />} />
+            <Route path="/homeground" element={<Homeground />} />
+            <Route path="/map-detail" element={<MapDetail />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/myposts" element={<MyPosts />} />
+            <Route path="/mycomments" element={<MyComments />} />
+            <Route path="/myreviews" element={<MyReviews />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </Router>
+      </StoreProvider>
+    </UserProvider>
   );
 }
 

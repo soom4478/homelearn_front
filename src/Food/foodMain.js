@@ -9,27 +9,47 @@ import { useNavigate } from "react-router-dom";
 import "./foodMain.css";
 
 const FoodMain = () => {
-    const [foodShops, setFoodShops] = useState([]);
+    const [foodShops, setFoodShops] = useState([]); // 빈 배열로 초기화
     const [error, setError] = useState(null);
     const [activeBlock, setActiveBlock] = useState("전체");
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedOption, setSelectedOption] = useState("잠실 야구장"); // 초기값을 "잠실 야구장"으로 설정
+    const [selectedOption, setSelectedOption] = useState("잠실 야구장"); 
     const [searchIcon, setSearchIcon] = useState(search_icon);
     const selectRef = useRef(null);
     const navigate = useNavigate();
+    
+    // API 키를 환경 변수에서 가져옵니다.
+    const apiKey = process.env.REACT_APP_API_KEY;
 
     useEffect(() => {
         const fetchFoodShops = async () => {
             try {
-                const response = await axios.get('http://3.138.127.122:5000/api/foodshop/6VVQ0SB-C3X4PJQ-J3DZ587-5FGKYD1');
-                setFoodShops(response.data);
+                const response = await axios.get(`http://localhost:5000/api/foodshop/${apiKey}`);
+                const foodShopsData = response.data;
+                // 각 음식점 ID로 리뷰 수 가져오기
+                const reviewCounts = await Promise.all(
+                    foodShopsData.map(shop =>
+                        axios.get(`http://localhost:5000/api/foodshopreview/${apiKey}/${shop.id}`)
+                            .then(reviewResponse => reviewResponse.data.length)
+                            .catch(() => 0) // 오류 발생 시 0으로 설정
+                    )
+                );
+
+                // 리뷰 수를 음식점 데이터에 추가
+                const foodShopsWithReviews = foodShopsData.map((shop, index) => ({
+                    ...shop,
+                    reviewCount: reviewCounts[index],
+                }));
+
+
+                setFoodShops(foodShopsWithReviews);
             } catch (error) {
                 setError('Failed to fetch food shops');
             }
         };
 
         fetchFoodShops();
-    }, []);
+    }, [apiKey]); // apiKey 의존성 추가
 
     const handleClick = (category) => {
         setActiveBlock(category);
@@ -44,9 +64,6 @@ const FoodMain = () => {
         setTimeout(() => {
             setSearchIcon(search_icon);
         }, 100);
-
-        const searchValue = searchTerm;
-        console.log("Search Term:", searchValue);
     };
 
     const handleSelectChange = (event) => {
@@ -57,13 +74,16 @@ const FoodMain = () => {
         navigate(`/food/${storeId}`);
     };
 
-    // 중복되지 않는 homeground 목록을 최대 10개까지 추출
-    const uniqueHomegrounds = [...new Set(foodShops.map(shop => shop.homeground))].slice(0, 10);
+    // foodShops가 있을 때만 map 실행
+    const uniqueHomegrounds = foodShops.length > 0 
+        ? [...new Set(foodShops.map(shop => shop.homeground))].slice(0, 10) 
+        : [];
 
-    // 선택된 homeground에 속하는 category 목록 추출
-    const uniqueCategories = ["전체", ...new Set(foodShops
+    const uniqueCategories = ["전체", ...new Set(
+        foodShops
         .filter(shop => shop.homeground === selectedOption)
-        .map(shop => shop.category))];
+        .map(shop => shop.category)
+    )];
 
     if (error) {
         return <div>{error}</div>;
@@ -87,7 +107,7 @@ const FoodMain = () => {
                     src={arrowIcon}
                     alt="arrow_icon"
                     className="arrow-icon"
-                    style={{ left: 'calc(100% - 20px)' }} // 고정된 위치로 설정
+                    style={{ left: 'calc(100% - 20px)' }}
                 />
             </div>
             
@@ -140,14 +160,14 @@ const FoodMain = () => {
                     )
                     .map((store, index) => (
                         <div className="store" key={index} onClick={() => handleStoreClick(store.id)}>
-                            <img id="img1" src={store.imgSrc} alt="img1" />
+                            <img id="img1" src={store.image_url} alt="img1" />
                             <div className="storeIfo">
                                 <h3 id="store_name">{store.name}</h3>
                                 <img id="star" src={star} alt="star" />
                                 <p id="star_point">{store.star}</p>
                                 <div className="popurler">
-                                    <p id="info_text">인기메뉴</p>
-                                    <p id="populer_menu">{store.menu.name}</p>
+                                    <p id="info_text">리뷰 수</p>
+                                    <p id="review_count">{store.reviewCount}</p> {/* 리뷰 수 표시 */}
                                 </div>
                                 <div className="order">
                                     <p id="info_text">오늘 주문수</p>

@@ -228,7 +228,7 @@ nav {
     margin-top: 5px;
 }
 
-#info_text, #populer_menu, #today_order {
+#info_text, #review_count, #today_order {
     font-size: 14;
     color: #767676;
     width: auto;
@@ -236,6 +236,6 @@ nav {
     margin: 0;
 }
 
-#populer_menu, #today_order {
+#review_count, #today_order {
     margin-left: auto;
 }

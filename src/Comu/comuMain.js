@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { displayInfo } from './displayImfo';
 import { TeamNum } from './team_num';
@@ -7,8 +7,10 @@ import heartIcon from "../image/heartIcon.png";
 import commentIcon from "../image/commentIcon.png";
 import comuBtn from "../image/comuBtn.png";
 import axios from 'axios';
+import { UserContext } from '../UserContext';
 
 const ComuMain = () => {
+    const { team_id } = useContext(UserContext);
     const [selectedIndex, setSelectedIndex] = useState('전체'); // 초기값을 "전체"로 설정
     const [backgroundImage, setBackgroundImage] = useState(null);
     const [displayText, setDisplayText] = useState('');
@@ -27,7 +29,7 @@ const ComuMain = () => {
 
         const fetchPosts = async () => {
             try {
-                const response = await axios.get('http://localhost:4000/api/post/your-api-key');
+                const response = await axios.get('http://localhost:5000/api/post/6VVQ0SB-C3X4PJQ-J3DZ587-5FGKYD1');
                 setPosts(response.data);
             } catch (error) {
                 setError(error);
@@ -39,7 +41,14 @@ const ComuMain = () => {
         fetchPosts();
     }, []);
 
-    const navItems = ['전체', '삼성 라이온즈'];
+    // team_id와 TeamNum 배열의 값을 콘솔에 출력하여 디버깅
+    console.log('team_id:', team_id);
+    console.log('TeamNum:', TeamNum);
+
+    const team = TeamNum.find(team => team.team_num === parseInt(team_id, 10));
+    console.log('team:', team);
+
+    const navItems = ['전체', team ? team.team_name : ''];
 
     const handleItemClick = (item) => {
         setSelectedIndex(item);
