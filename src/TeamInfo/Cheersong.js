@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate, useLocation } from 'react-router-dom'; 
+import axios from 'axios'; 
 import './Cheersong.css';
-import SearchIcon from '@mui/icons-material/Search';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Checkbox from '@mui/material/Checkbox';
 import FavoriteBorder from '@mui/icons-material/FavoriteBorder';
@@ -13,28 +13,37 @@ const Cheersong = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState(0);
   const [likedSongs, setLikedSongs] = useState({});
+  const [songs, setSongs] = useState([]);
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const teamId = searchParams.get('teamId'); 
 
   useEffect(() => { 
     window.scrollTo(0, 0);
-  }, []);
+    console.log("팀 ID:", teamId); // teamId 확인
+    fetchSongs();
+  }, [teamId]); // teamId가 변경될 때마다 노래를 다시 가져옴
 
-  const songs = [
-    { id: 1, name: '엘도라도', category: '구단' },
-    { id: 2, name: '환희', category: '구단' },
-    { id: 3, name: 'Jump up Lions', category: '구단' },
-    { id: 4, name: '우리들의 함성', category: '구단' },
-    { id: 5, name: '구자욱 응원가', category: '선수' },
-    { id: 6, name: '김헌곤 응원가', category: '선수' },
-  ];
+  const fetchSongs = async () => {
+    if (!teamId) return; // teamId가 없으면 요청하지 않음
+
+    try {
+      const response = await axios.get(`http://3.138.127.122:5000/api/cheersong/${process.env.REACT_APP_API_KEY}`); // API 요청
+      setSongs(response.data);
+    } catch (error) {
+      console.error('Failed to fetch songs:', error);
+    }
+  };
 
   const filteredSongs = songs.filter((song) => {
     const matchTab =
       activeTab === 0 ||
       (activeTab === 1 && song.category === '구단') ||
       (activeTab === 2 && song.category === '선수');
-    const matchSearch = song.name.includes(searchTerm);
-    return matchTab && matchSearch;
+    const matchSearch = song.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchTeamId = song.TeamId === Number(teamId); 
+    return matchTab && matchSearch && matchTeamId; 
   });
 
   const handleLike = (id) => {
@@ -50,21 +59,18 @@ const Cheersong = () => {
   };
 
   const handleClick = (id) => {
-    // 엘도라도 버튼 클릭하면 SongDetail 페이지로 이동
-    if (id === 1) { // 엘도라도의 id가 1임
-      navigate(`/songdetail/${id}`);
-    }
+    navigate(`/songdetail/${id}`); // 노래 상세 페이지로 이동
   };
 
   return (
     <div className="container10">
-      <div className="header">
+      <div className="header72">
         <button className="back-button" onClick={() => window.history.back()}>
           <ArrowBackIcon />
         </button>
-        <div className="title">삼성 라이온즈 응원가</div>
-        <div className="line"></div>
+        <div className="title72">응원가</div>
       </div>
+      <div className="line"></div>
 
       <div className="search-container">
         <input
@@ -74,7 +80,6 @@ const Cheersong = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <SearchIcon className="search-icon" />
       </div>
 
       <div className="tab-container">

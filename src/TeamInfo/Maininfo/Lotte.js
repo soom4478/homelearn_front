@@ -4,6 +4,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import { styled } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
 
 import playerIcon from '../../image/player.png';
 import homegroundIcon from '../../image/homeground.png';
@@ -44,9 +45,18 @@ const RoundedButton = styled(Button)(({ theme, isSelected }) => ({
 
 const Lotte = () => {
   const [selectedButton, setSelectedButton] = useState(null);
+  const navigate = useNavigate();
+  const teamId = 3; // Lotte 팀의 ID 설정
 
   const handleButtonClick = (button) => {
     setSelectedButton(button);
+    if (button === 'player') {
+      navigate(`/player?teamId=${teamId}`); // 선수 페이지로 이동하며 teamId 전달
+    } else if (button === 'homeground') {
+      navigate(`/homeground?teamId=${teamId}`); // 홈구장 페이지로 이동하며 teamId 전달
+    } else if (button === 'cheersong') {
+      navigate(`/cheersong?teamId=${teamId}`); // 응원가 페이지로 이동하며 teamId 전달
+    }
     setTimeout(() => {
       setSelectedButton(null);
     }, 300);
@@ -115,7 +125,7 @@ const Lotte = () => {
               fontFamily: 'Pretendard-SemiBold',
             }}
           >
-          1975.05.06
+            1975.05.06
           </Typography>
         </Box>
         <Box sx={{ mb: 3 }}>
@@ -138,7 +148,7 @@ const Lotte = () => {
               fontFamily: 'Pretendard-SemiBold',
             }}
           >
-          부산광역시
+            부산광역시
           </Typography>
         </Box>
         <Box>
@@ -251,7 +261,7 @@ const Lotte = () => {
               fontFamily: 'Pretendard-SemiBold',
             }}
           >
-          누리
+            누리
           </Typography>
         </Box>
         <Box

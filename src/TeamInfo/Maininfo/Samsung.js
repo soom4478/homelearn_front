@@ -45,16 +45,17 @@ const RoundedButton = styled(Button)(({ theme, isSelected }) => ({
 
 const Samsung = () => {
   const [selectedButton, setSelectedButton] = useState(null);
+  const teamId = 4; // 삼성 팀의 ID 설정
   const navigate = useNavigate(); 
 
   const handleButtonClick = (button) => {
     setSelectedButton(button);
     if (button === 'player') {
-      navigate('/player');  // 선수 페이지로 이동합니다.
-    } else if (button === 'cheersong') {
-      navigate('/cheersong'); // 응원가 페이지로 이동합니다.
+      navigate(`/player?teamId=${teamId}`); // 선수 페이지로 이동하며 teamId 전달
     } else if (button === 'homeground') {
-      navigate('/Homeground'); // 구장 페이지로 이동합니다.
+      navigate(`/homeground?teamId=${teamId}`); // 홈구장 페이지로 이동하며 teamId 전달
+    } else if (button === 'cheersong') {
+      navigate(`/cheersong?teamId=${teamId}`); // 응원가 페이지로 이동하며 teamId 전달
     }
     setTimeout(() => {
       setSelectedButton(null);
@@ -200,36 +201,28 @@ const Samsung = () => {
             onClick={() => handleButtonClick('player')}
           >
             <img src={playerIcon} alt="player" />
-            <Typography sx={{
-              fontFamily: 'Pretendard-Medium',
-            }}>선수</Typography>
+            <Typography sx={{ fontFamily: 'Pretendard-Medium' }}>선수</Typography>
           </RoundedButton>
           <RoundedButton
             isSelected={selectedButton === 'homeground'}
             onClick={() => handleButtonClick('homeground')}
           >
             <img src={homegroundIcon} alt="homeground" />
-            <Typography sx={{
-              fontFamily: 'Pretendard-Medium',
-            }}>홈구장</Typography>
+            <Typography sx={{ fontFamily: 'Pretendard-Medium' }}>홈구장</Typography>
           </RoundedButton>
           <RoundedButton
             isSelected={selectedButton === 'cheersong'}
             onClick={() => handleButtonClick('cheersong')}
           >
             <img src={cheersongIcon} alt="cheersong" />
-            <Typography sx={{
-              fontFamily: 'Pretendard-Medium',
-            }}>응원가</Typography>
+            <Typography sx={{ fontFamily: 'Pretendard-Medium' }}>응원가</Typography>
           </RoundedButton>
           <RoundedButton
             isSelected={selectedButton === 'shop'}
             onClick={handleShopClick}
           >
             <img src={shopIcon} alt="shop" />
-            <Typography sx={{
-              fontFamily: 'Pretendard-Medium',
-            }}>굿즈샵</Typography>
+            <Typography sx={{ fontFamily: 'Pretendard-Medium' }}>굿즈샵</Typography>
           </RoundedButton>
         </ButtonGroup>
 

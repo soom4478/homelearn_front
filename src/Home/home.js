@@ -51,7 +51,7 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://3.138.127.122:5000/api/game/6VVQ0SB-C3X4PJQ-J3DZ587-5FGKYD1');
+        const response = await axios.get(`http://3.138.127.122:5000/api/game/${process.env.REACT_APP_API_KEY}`);
         setGames(response.data);
       } catch (error) {
         setError(error);

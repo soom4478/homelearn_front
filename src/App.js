@@ -31,7 +31,7 @@ import Notifications from "./Alram/Notifications";
 import ReviewWrite from "./Food/reviewWrite";
 import Start from './Start/Start';  
 import Login from './Start/Login'; 
-import SocialKakao from "./OAuth";
+import SocialKakao from "./Start/Login";
 
 import UserManagement from './test';
 import { UserProvider } from './UserContext';
@@ -44,10 +44,10 @@ const App = () => {
       <StoreProvider>
         <Router>
           <Routes>
-            <Route path="/" element={<UserManagement />} />
-            {/* <Route path="/" element={<SocialKakao />} /> */}
+            {/* <Route path="/" element={<UserManagement />} /> */}
+            <Route path="/" element={<SocialKakao />} />
             {/* <Route path="/" element={<Start />} /> */}
-            <Route path="/login" element={<Login />} /> 
+            {/* <Route path="/login" element={<Login />} />  */}
             {/* <Route path="/home" element={<><Hometest /></>} /> */}
             <Route path="/home" element={<><BottomNav /><Home /></>} />
             <Route path="/calender" element={<Calender />} />

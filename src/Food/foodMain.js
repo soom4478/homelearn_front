@@ -24,12 +24,12 @@ const FoodMain = () => {
     useEffect(() => {
         const fetchFoodShops = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/api/foodshop/${apiKey}`);
+                const response = await axios.get(`http://3.138.127.122:5000/api/foodshop/${apiKey}`);
                 const foodShopsData = response.data;
                 // 각 음식점 ID로 리뷰 수 가져오기
                 const reviewCounts = await Promise.all(
                     foodShopsData.map(shop =>
-                        axios.get(`http://localhost:5000/api/foodshopreview/${apiKey}/${shop.id}`)
+                        axios.get(`http://3.138.127.122:5000/api/foodshopreview/${apiKey}/${shop.id}`)
                             .then(reviewResponse => reviewResponse.data.length)
                             .catch(() => 0) // 오류 발생 시 0으로 설정
                     )

@@ -9,9 +9,12 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import { UserContext } from '../UserContext';  
 import axios from 'axios';  
-import { TeamNum } from '../Comu/team_num';  // TeamNum import 추가
+import { TeamNum } from '../Comu/team_num';  
 
-function Login() {
+const apikey = process.env.REACT_APP_API_KEY;
+
+
+const Login = () => {
     const [profileImage, setProfileImage] = useState(defaultProfileImage);
     const [localName, setLocalName] = useState('');
     const [team, setTeam] = useState('');
@@ -19,7 +22,11 @@ function Login() {
     const imageContainerRef = useRef(null);
     const imageActionsRef = useRef(null);
     const navigate = useNavigate();
-    const { setName, setTeam_id, setImage_url } = useContext(UserContext);
+    const { setName, setImage_url } = useContext(UserContext);
+
+    const Rest_api_key = process.env.REACT_APP_KAKAO_REST_API_KEY; // REST API KEY
+    const redirect_uri = 'http://3.138.127.122:5000/auth/call'; // Redirect URI
+    const kakaoURL = `https://kauth.kakao.com/oauth/authorize?client_id=${Rest_api_key}&redirect_uri=${redirect_uri}&response_type=code`;
 
     useEffect(() => {
         const savedProfileImage = localStorage.getItem('profileImage');
@@ -30,6 +37,75 @@ function Login() {
         if (savedName) setLocalName(savedName);
         if (savedTeam) setTeam(savedTeam);
     }, []);
+
+    useEffect(() => {
+        const code = new URL(window.location.href).searchParams.get("code");
+        if (code) {
+            handleKakaoLogin(code);
+        } else if (window.Kakao) {
+            window.Kakao.init(Rest_api_key); // 카카오 API 키 초기화
+        }
+    }, []);
+
+    const handleKakaoLogin = async (code) => {
+        try {
+            const response = await axios.post(`http://3.138.127.122:5000/api/kakao/${apikey}`, { code });
+            const { id, properties } = response.data;
+            const { nickname, profile_image } = properties;
+
+            // 로컬 스토리지에 사용자 정보 저장
+            localStorage.setItem('name', nickname);
+            localStorage.setItem('profileImage', profile_image);
+            localStorage.setItem('kakaoId', id);
+
+            setLocalName(nickname);
+            setProfileImage(profile_image);
+            setImage_url(profile_image);
+            setTeam(''); // 팀 초기화
+
+            // 정보 입력 후 Home으로 이동
+            navigate('/Home'); // 여기서 바로 홈으로 이동
+
+        } catch (error) {
+            console.error('Error fetching user info:', error);
+            alert('로그인 실패! 다시 시도해 주세요.');
+        }
+    };
+
+    const handleConfirm = async () => {
+        if (!localName || !team) {
+            alert('이름과 팀을 모두 입력해 주세요.');
+            return;
+        }
+
+        try {
+            const kakaoId = localStorage.getItem('kakaoId');
+            const profileImage = localStorage.getItem('profileImage');
+
+            setName(localName);  // UserContext에 name 저장
+            
+            const selectedTeam = TeamNum.find(t => t.team_name === team);
+            localStorage.setItem('team', team);
+
+            const response = await axios.post(`http://3.138.127.122:5000/api/user/${process.env.REACT_APP_API_KEY}`, {
+                kakaoId: kakaoId,
+                name: localName,
+                baseball_team_name: selectedTeam ? selectedTeam.team_name : null,
+                image_url: profileImage 
+            });
+            
+            const userId = response.data.id; // API 응답에서 사용자 ID 가져오기
+            localStorage.setItem('userId', userId); // 로컬 스토리지에 사용자 ID 저장
+
+            console.log('백엔드 응답:', response.data);
+
+            // 성공 시 페이지 이동
+            navigate('/Home'); 
+        } catch (error) {
+            console.error('데이터 전송 중 오류 발생:', error);
+            alert('데이터 전송 중 오류 발생. 다시 시도해 주세요.');
+        }
+    };
 
     const handleImageChange = (event) => {
         const file = event.target.files[0];
@@ -54,34 +130,6 @@ function Login() {
 
     const handleNameChange = (event) => {
         setLocalName(event.target.value);
-    };
-
-    // 서버로 데이터 전송하는 함수
-    const handleConfirm = async () => {
-        try {
-            setName(localName);  // UserContext에 name 저장
-            
-            // 선택한 팀의 team_num 찾기
-            const selectedTeam = TeamNum.find(t => t.team_name === team);
-
-            // LocalStorage에 저장
-            localStorage.setItem('name', localName);
-            localStorage.setItem('team', team);
-
-            // 백엔드로 데이터 전송
-            const response = await axios.post(`http://localhost:5000/api/user/${process.env.REACT_APP_API_KEY}`, {
-                name: localName,
-                baseball_team_name: selectedTeam.team_name,
-                image_url: profileImage// team_num 전송
-            });
-
-            console.log('백엔드 응답:', response.data);
-
-            // 성공 시 페이지 이동
-            navigate('/Home'); 
-        } catch (error) {
-            console.error('데이터 전송 중 오류 발생:', error);
-        }
     };
 
     const toggleImageActions = () => {
@@ -184,6 +232,9 @@ function Login() {
 
                 <button className="confirm-button" onClick={handleConfirm}>
                     확인
+                </button>
+                <button className="kakao-login-button" onClick={() => window.location.href = kakaoURL}>
+                    카카오 로그인
                 </button>
             </div>
         </div>

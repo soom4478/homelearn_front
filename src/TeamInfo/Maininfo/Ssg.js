@@ -4,12 +4,14 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import { styled } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
 
 import playerIcon from '../../image/player.png';
 import homegroundIcon from '../../image/homeground.png';
 import cheersongIcon from '../../image/cheersong.png';
 import shopIcon from '../../image/shop.png';
 import mascotImage from '../../image/mascot_Ssg.svg';
+
 
 const RoundedButton = styled(Button)(({ theme, isSelected }) => ({
   borderRadius: '15px',
@@ -44,9 +46,18 @@ const RoundedButton = styled(Button)(({ theme, isSelected }) => ({
 
 const Ssg = () => {
   const [selectedButton, setSelectedButton] = useState(null);
+  const navigate = useNavigate();
+  const teamId = 5; // SSG 팀의 ID 설정
 
   const handleButtonClick = (button) => {
     setSelectedButton(button);
+    if (button === 'player') {
+      navigate(`/player?teamId=${teamId}`); // 선수 페이지로 이동하며 teamId 전달
+    } else if (button === 'homeground') {
+      navigate(`/homeground?teamId=${teamId}`); // 홈구장 페이지로 이동하며 teamId 전달
+    } else if (button === 'cheersong') {
+      navigate(`/cheersong?teamId=${teamId}`); // 응원가 페이지로 이동하며 teamId 전달
+    }
     setTimeout(() => {
       setSelectedButton(null);
     }, 300);
@@ -115,7 +126,7 @@ const Ssg = () => {
               fontFamily: 'Pretendard-SemiBold',
             }}
           >
-          2021.03.05
+            2021.03.05
           </Typography>
         </Box>
         <Box sx={{ mb: 3 }}>
@@ -251,7 +262,7 @@ const Ssg = () => {
               fontFamily: 'Pretendard-SemiBold',
             }}
           >
-          랜디
+            랜디
           </Typography>
         </Box>
         <Box

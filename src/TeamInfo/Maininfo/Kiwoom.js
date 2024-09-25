@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // useNavigate를 import 합니다.
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -42,11 +43,20 @@ const RoundedButton = styled(Button)(({ theme, isSelected }) => ({
   },
 }));
 
-const Kia = () => {
+const Kiwoom = () => {
+  const navigate = useNavigate(); // useNavigate 훅을 사용하여 navigate를 정의합니다.
+  const teamId = 7; // Kiwoom 팀의 ID를 7로 설정
   const [selectedButton, setSelectedButton] = useState(null);
 
   const handleButtonClick = (button) => {
     setSelectedButton(button);
+    if (button === 'player') {
+      navigate(`/player?teamId=${teamId}`); // 선수 페이지로 이동하며 teamId 전달
+    } else if (button === 'homeground') {
+      navigate(`/homeground?teamId=${teamId}`); // 홈구장 페이지로 이동하며 teamId 전달
+    } else if (button === 'cheersong') {
+      navigate(`/cheersong?teamId=${teamId}`); // 응원가 페이지로 이동하며 teamId 전달
+    }
     setTimeout(() => {
       setSelectedButton(null);
     }, 300);
@@ -284,4 +294,4 @@ const Kia = () => {
   );
 };
 
-export default Kia;
+export default Kiwoom;

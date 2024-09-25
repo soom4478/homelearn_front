@@ -7,8 +7,9 @@ import heartIcon2 from "../image/heart_full.png";
 import comuIcon from "../image/comuIcon.png";
 import dotIcon from "../image/dotIcon.png";
 import dotIcon2 from "../image/dotIcon2.png";
-import { commentImfo, addComment } from './commentImfo';
 import axios from 'axios';
+
+const apikey = process.env.REACT_APP_API_KEY;
 
 const ComuDetail = () => {
     const navigate = useNavigate();
@@ -16,104 +17,55 @@ const ComuDetail = () => {
     const { id } = location.state || {}; // location.state가 null인 경우를 처리
 
     const [item, setItem] = useState(null);
-    const [isCommenting, setIsCommenting] = useState(false);
-    const [commentText, setCommentText] = useState('');
-    const [comments, setComments] = useState([]);
+    const [user, setUser] = useState(null); // 사용자 정보를 저장할 상태
     const [isHearted, setIsHearted] = useState(false);
     const [heartCount, setHeartCount] = useState(0);
 
+    // 포스트 데이터 가져오기
     useEffect(() => {
-        if (id) {
-            console.log("넘겨받은 id:", id); // id 출력
-            const fetchItem = async () => {
-                try {
-                    const response = await axios.get(`http://localhost:5000/api/post/your-api-key/${id}`);
-                    setItem(response.data);
-                    setHeartCount(response.data.like_num);
-                } catch (error) {
-                    console.error('데이터 불러오기 중 오류 발생:', error);
-                }
-            };
-
-            fetchItem();
-        }
-    }, [id]);
-
-    useEffect(() => {
-        const fetchComments = async () => {
+        const fetchPost = async () => {
             try {
-                const response = await axios.get('http://3.138.127.122:5000/api/postcomment/6VVQ0SB-C3X4PJQ-J3DZ587-5FGKYD1');
-                setComments(response.data);
+                const response = await axios.get(`http://3.138.127.122:5000/api/post/${apikey}/${id}`);
+                setItem(response.data); // 포스트 정보 상태 설정
+                setHeartCount(response.data.like_num); // 좋아요 수 초기화
+                setIsHearted(response.data.isHearted); // 좋아요 상태 초기화
+                console.log(response.data);
+
+                // 포스트의 user_id로 사용자 정보 가져오기
+                if (response.data && response.data.user_id) {
+                    const userResponse = await axios.get(`http://3.138.127.122:5000/api/user/${apikey}/${response.data.user_id}`);
+                    setUser(userResponse.data); // 사용자 정보를 상태에 설정
+                } else {
+                    console.error("포스트에 user_id가 없습니다."); // user_id가 없는 경우 로그
+                }
             } catch (error) {
-                console.error('댓글 데이터 불러오기 중 오류 발생:', error);
+                console.error("포스트 또는 사용자 정보 가져오는 중 오류 발생:", error);
             }
         };
 
-        fetchComments();
-    }, []);
-
-    useEffect(() => {
-        if (item) {
-            const heartedStatus = localStorage.getItem(`isHearted_${item.id}`);
-            if (heartedStatus) {
-                setIsHearted(JSON.parse(heartedStatus));
-            }
-        }
-    }, [item]);
+        fetchPost();
+    }, [id]);
 
     const handleReturnClick = () => {
         navigate(-1); // 뒤로 이동
     };
 
-    const handleCommentClick = () => {
-        setIsCommenting(true); // 상태 변경
-    };
-
-    const handleCommentChange = (event) => {
-        setCommentText(event.target.value);
-    };
-
-    const handleKeyPress = (event) => {
-        if (event.key === 'Enter' && commentText.trim() !== '') {
-            const formatDate = (date) => {
-                const year = String(date.getFullYear()).slice(2);
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                return `${year}.${month}.${day}`;
-            };
-    
-            const newComment = {
-                id: item.id,
-                name: '사용자 이름', // 실제 사용자 이름으로 대체
-                time: formatDate(new Date()), // 원하는 형식으로 날짜 포맷
-                comment: commentText
-            };
-            setComments([...comments, newComment]);
-            addComment(newComment);
-            setCommentText('');
-            setIsCommenting(false);
-        }
-    };
-
     const handleHeartClick = async () => {
         const newHeartedStatus = !isHearted;
         setIsHearted(newHeartedStatus);
-        localStorage.setItem(`isHearted_${item.id}`, JSON.stringify(newHeartedStatus));
         const newHeartCount = newHeartedStatus ? heartCount + 1 : heartCount - 1;
         setHeartCount(newHeartCount);
-    
+
         try {
-            console.log('좋아요 수 업데이트를 위한 PUT 요청을 보내는 중...');
-            await axios.put(`http://localhost:5000/api/post/6VVQ0SB-C3X4PJQ-J3DZ587-5FGKYD1/${item.id}`, {
+            await axios.put(`http://3.138.127.122:5000/api/post/${apikey}/${item.id}`, {
                 like_num: newHeartCount
             });
-            console.log('PUT 요청 성공.');
         } catch (error) {
             console.error('좋아요 업데이트 중 오류 발생:', error);
         }
     };
 
-    if (!item) {
+    if (!item || !user) {
         return <div>Loading...</div>;
     }
 
@@ -122,16 +74,18 @@ const ComuDetail = () => {
             <div className='comuTcon'>
                 <div className="foodDcon2">
                     <div className='calender-con'>
-                        <img id="return" src={returnIcon} alt="return" onClick={handleReturnClick} /> {/* 클릭 이벤트 핸들러 추가 */}
+                        <img id="return" src={returnIcon} alt="return" onClick={handleReturnClick} />
                         <p id='foodDetail-title'>{item.title}</p>
                     </div>
                 </div>
             </div>
             <div className='comuDcon2'>
                 <div className='comuDcon3'>
-                    <div className='comuProfile'></div>
+                    <div className='comuProfile'>
+                        {user.profilePic && <img src={user.profilePic} alt="User Profile" className='profilePic' />} {/* 프로필 사진 */}
+                    </div>
                     <div className='comuUser'>
-                        <p id='uname'>{item.user_id}</p>
+                        <p id='uname'>{user.name}</p> {/* 사용자 이름 */}
                         <p id='utime'>2024.05.26</p>
                     </div>
                     <img id='dotIcon1' src={dotIcon} alt="dotIcon1" />
@@ -148,39 +102,6 @@ const ComuDetail = () => {
                     </div>
                 </div>
             </div>
-            <div className='commentBcon'>
-                <span id='commentBtn' onClick={handleCommentClick}>댓글 쓰기</span>
-            </div>
-            {isCommenting ? (
-                <div className='commentWrite'>
-                    <textarea
-                        id='commentBox'
-                        placeholder="댓글을 입력하세요"
-                        value={commentText}
-                        onChange={handleCommentChange}
-                        onKeyPress={handleKeyPress}
-                    ></textarea>
-                </div>
-            ) : (
-                <div className='comuDcon5'>
-                    {comments.filter(comment => comment.postId === item.id).map((comment, index) => (
-                        <div className='comuDcon8' key={index}>
-                            <div className='comuDcon6'>
-                                <div className='cmtCon'>
-                                    <div className='comuDcon7'></div>
-                                    <div className='comuProfile2'></div>
-                                    <div className='comuUser'>
-                                        <p id='uname'>{comment.userId}</p>
-                                        <p id='utime'>{new Date(comment.updatedAt).toISOString().split('T')[0].replace(/-/g, '.')}</p>
-                                    </div>
-                                    <img id='dotIcon2' src={dotIcon2} alt="dotIcon2" />
-                                </div>
-                                <p id='cmtText'>{comment.content}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
         </div>
     );
 };

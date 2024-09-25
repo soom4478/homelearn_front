@@ -4,6 +4,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import { styled } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
 
 import playerIcon from '../../image/player.png';
 import homegroundIcon from '../../image/homeground.png';
@@ -44,9 +45,18 @@ const RoundedButton = styled(Button)(({ theme, isSelected }) => ({
 
 const Lg = () => {
   const [selectedButton, setSelectedButton] = useState(null);
+  const navigate = useNavigate();
+  const teamId = 6; // LG 팀의 ID 설정
 
   const handleButtonClick = (button) => {
     setSelectedButton(button);
+    if (button === 'player') {
+      navigate(`/player?teamId=${teamId}`); // 선수 페이지로 이동하며 teamId 전달
+    } else if (button === 'homeground') {
+      navigate(`/homeground?teamId=${teamId}`); // 홈구장 페이지로 이동하며 teamId 전달
+    } else if (button === 'cheersong') {
+      navigate(`/cheersong?teamId=${teamId}`); // 응원가 페이지로 이동하며 teamId 전달
+    }
     setTimeout(() => {
       setSelectedButton(null);
     }, 300);
@@ -115,7 +125,7 @@ const Lg = () => {
               fontFamily: 'Pretendard-SemiBold',
             }}
           >
-          1990.03.15
+            1990.03.15
           </Typography>
         </Box>
         <Box sx={{ mb: 3 }}>
@@ -251,7 +261,7 @@ const Lg = () => {
               fontFamily: 'Pretendard-SemiBold',
             }}
           >
-          럭키, 스타
+            럭키, 스타
           </Typography>
         </Box>
         <Box

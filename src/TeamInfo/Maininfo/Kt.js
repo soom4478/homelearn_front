@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // useNavigate 추가
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -44,16 +45,25 @@ const RoundedButton = styled(Button)(({ theme, isSelected }) => ({
 
 const Kt = () => {
   const [selectedButton, setSelectedButton] = useState(null);
+  const navigate = useNavigate(); // useNavigate 훅을 사용
+  const teamId = 8; // teamId 설정
 
   const handleButtonClick = (button) => {
     setSelectedButton(button);
+    if (button === 'player') {
+      navigate(`/player?teamId=${teamId}`); // 선수 페이지로 이동하며 teamId 전달
+    } else if (button === 'homeground') {
+      navigate(`/homeground?teamId=${teamId}`); // 홈구장 페이지로 이동하며 teamId 전달
+    } else if (button === 'cheersong') {
+      navigate(`/cheersong?teamId=${teamId}`); // 응원가 페이지로 이동하며 teamId 전달
+    }
     setTimeout(() => {
       setSelectedButton(null);
     }, 300);
   };
 
   const handleShopClick = () => {
-    window.location.href = 'https://ktwizstore.co.kr/';
+    window.location.href = 'https://ktwizstore.co.kr/'; // 외부 링크로 이동
   };
 
   return (
@@ -251,7 +261,7 @@ const Kt = () => {
               fontFamily: 'Pretendard-SemiBold',
             }}
           >
-          빅, 또리
+            빅, 또리
           </Typography>
         </Box>
         <Box
