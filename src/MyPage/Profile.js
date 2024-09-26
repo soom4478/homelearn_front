@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import './Profile.css';
 import ClearIcon from '@mui/icons-material/Clear';
-import defaultProfileImage from '../image/Profile.png';  
-import picture from '../image/picture.png';
+import defaultProfileImage from '../image/Profile.png';
 import { useNavigate } from 'react-router-dom';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -12,117 +11,52 @@ import { UserContext } from '../UserContext'; // UserContext import 추가
 import axios from 'axios'; // Axios import 추가
 
 function Profile() {
-  const { name: contextName, setName, team_id, setTeam_id, image_url, setImage_url } = useContext(UserContext);
-  const [profileImage, setProfileImage] = useState(image_url || defaultProfileImage);
+  const { name: contextName, setName, team_id, setTeam_id } = useContext(UserContext); // userId 제거
+  const [profileImage] = useState(defaultProfileImage); // 기본 이미지 사용
   const [name, setNameState] = useState(contextName);
   const [team, setTeam] = useState(team_id);
-  const [showImageActions, setShowImageActions] = useState(false);
-  const imageContainerRef = useRef(null);
-  const imageActionsRef = useRef(null);
+  const [userId, setUserId] = useState(null); // userId 상태 추가
   const navigate = useNavigate();
 
   useEffect(() => {
-    setProfileImage(image_url);
+    // 로컬 스토리지에서 userId 가져오기
+    const storedUserId = localStorage.getItem('userId');
+    setUserId(storedUserId);
+
+    // 상태 업데이트
     setNameState(contextName);
     setTeam(team_id);
-  }, [image_url, contextName, team_id]);
-
-  const handleImageChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImage(reader.result);
-        setImage_url(reader.result);
-        localStorage.setItem('profileImage', reader.result);
-        setShowImageActions(false);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const resetToDefaultImage = () => {
-    setProfileImage(defaultProfileImage);
-    setImage_url(defaultProfileImage);
-    localStorage.setItem('profileImage', defaultProfileImage);
-    setShowImageActions(false);
-  };
-
-  const handleNameChange = (event) => {
-    setNameState(event.target.value);
-  };
-
-  // 사용자의 이름과 일치하는 사용자 ID를 백엔드에서 찾아오는 함수
-  const fetchUserIdByName = async (inputName) => {
-    try {
-      const apiKey = process.env.REACT_APP_API_KEY; // API 키 설정
-      const { data: users } = await axios.get(`http://localhost:5000/api/users/${process.env.REACT_APP_API_KEY}`);
-
-      // 입력된 이름과 일치하는 사용자를 찾음
-      const matchedUser = users.find(user => user.name === inputName);
-
-      if (matchedUser) {
-        return matchedUser.id; // 사용자의 ID 반환
-      } else {
-        console.error('해당 이름의 사용자를 찾을 수 없습니다.');
-        return null;
-      }
-    } catch (error) {
-      console.error('사용자 정보를 가져오는 중 오류 발생:', error);
-      return null;
-    }
-  };
+  }, [contextName, team_id]);
 
   const handleConfirm = async () => {
     try {
-      // 입력된 이름과 일치하는 사용자의 ID를 가져옴
-      const userId = await fetchUserIdByName(contextName);
+      // 업데이트할 사용자 정보
+      const updatedUser = {
+        name,  // 새로운 이름
+        team_id: team,  // 새로운 팀 ID
+        image_url: null,  // 기본 프로필 이미지
+      };
 
-      if (userId) {
-        // 업데이트할 사용자 정보
-        const updatedUser = {
-          name,  // 새로운 이름
-          team_id: team,  // 새로운 팀 ID
-          image_url: profileImage,  // 새로운 프로필 이미지
-        };
+      // 사용자 정보 업데이트 요청
+      await axios.put(`http://3.138.127.122:5000/api/user/${process.env.REACT_APP_API_KEY}/${userId}`, updatedUser);
+      console.log('사용자 정보 업데이트 성공');
 
-        // 사용자 정보 업데이트 요청
-        await axios.put(`http://3.138.127.122:5000/api/users/${process.env.REACT_APP_API_KEY}/${userId}`, updatedUser);
-        console.log('사용자 정보 업데이트 성공');
+      // Context와 localStorage 업데이트
+      setName(name);
+      setTeam_id(team);
+      localStorage.setItem('name', name);
+      localStorage.setItem('team', team);
 
-        // Context와 localStorage 업데이트
-        setName(name);
-        setTeam_id(team);
-        localStorage.setItem('name', name);
-        localStorage.setItem('team', team);
-
-        // 업데이트 완료 후 '/my' 페이지로 이동
-        navigate('/my');
-      }
+      // 업데이트 완료 후 '/my' 페이지로 이동
+      navigate('/my');
     } catch (error) {
       console.error('사용자 정보 업데이트 중 오류 발생:', error);
     }
   };
 
-  const toggleImageActions = () => {
-    setShowImageActions(prev => !prev);
+  const handleNameChange = (event) => {
+    setNameState(event.target.value);
   };
-
-  const handleClickOutside = (event) => {
-    if (
-      imageContainerRef.current &&
-      !imageContainerRef.current.contains(event.target) &&
-      imageActionsRef.current &&
-      !imageActionsRef.current.contains(event.target)
-    ) {
-      setShowImageActions(false);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   return (
     <div className="profile-container">
@@ -133,31 +67,12 @@ function Profile() {
       </div>
 
       <div className="profile-body">
-        <div className="profile-image-container" ref={imageContainerRef}>
+        <div className="profile-image-container">
           <img
-            src={profileImage}
+            src={profileImage} // 기본 이미지로 설정
             alt="Profile"
             className="profile-image"
-            onClick={toggleImageActions}
           />
-          <img src={picture} alt="picture" className="picture" />
-          {showImageActions && (
-            <div className="image-actions" ref={imageActionsRef}>
-              <button className="image-action-button" onClick={resetToDefaultImage}>
-                기본이미지로 변경
-              </button>
-              <label className="image-action-button">
-                갤러리에서 이미지 넣기
-                <input
-                  type="file"
-                  id="image-input"
-                  className="image-input"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-              </label>
-            </div>
-          )}
         </div>
 
         <div className="input-group">

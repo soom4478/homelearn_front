@@ -27,7 +27,22 @@ const ComuMain = () => {
             try {
                 const response = await axios.get(`http://3.138.127.122:5000/api/post/${apikey}`);
                 setPosts(response.data);
-                console.log(response.data);
+                const fetchBillboard = async () => {
+                        try {
+                            // 1. 로컬 스토리지에서 이미지 불러오기
+                            const storedImage = localStorage.getItem('billboardImage');
+                            const storedText = localStorage.getItem('billboardText');
+                
+                            setBackgroundImage(storedImage);
+                            setDisplayText(storedText);
+                        } catch (error) {
+                            setError(error);
+                        } finally {
+                            setLoading(false); // 항상 로딩 상태를 false로 설정
+                        }
+                    };
+                fetchBillboard();
+                
             } catch (error) {
                 setError(error);
             } finally {
@@ -35,21 +50,7 @@ const ComuMain = () => {
             }
         };
 
-        
-
-        const fetchBillboard = async () => {
-            try {
-                const response = await axios.get(`http://3.138.127.122:5000/api/billboard/${apikey}`);
-                const billboardData = response.data;
-                setBackgroundImage(billboardData.image);
-                setDisplayText(billboardData.text);
-            } catch (error) {
-                setError(error);
-            }
-        };
-
         fetchPosts();
-        fetchBillboard();
     }, []);
 
 

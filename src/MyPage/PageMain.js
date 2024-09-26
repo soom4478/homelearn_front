@@ -28,7 +28,7 @@ function PageMain() {
     navigate('/settings');
   };
 
-  const profileImage = localStorage.getItem('profileImage') || Profile;
+  const profileImage = Profile;
   const name = localStorage.getItem('name') || '구자욱';
   const teamKey = localStorage.getItem('team') || '삼성 라이온즈';
   const team = getTeamInfo(teamKey);

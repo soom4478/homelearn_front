@@ -7,8 +7,13 @@ import Kakao from "../image/Kakao.png";
 const Start = () => {
   const navigate = useNavigate();
 
+  // REST API KEY와 Redirect URI 설정
+  const Rest_api_key = process.env.REACT_APP_KAKAO_REST_API_KEY; // REST API KEY
+  const redirect_uri = `http://localhost:3000/auth/call`; // Redirect URI
+  const kakaoURL = `https://kauth.kakao.com/oauth/authorize?client_id=${Rest_api_key}&redirect_uri=${redirect_uri}&response_type=code`;
+
   const handleKakaoClick = () => {
-    navigate('/login');
+    window.location.href = kakaoURL // 카카오 로그인 URL로 리다이렉트
   };
 
   return (
